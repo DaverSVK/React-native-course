@@ -1,145 +1,61 @@
 import { StatusBar } from "expo-status-bar";
+import { StyleSheet, ImageBackground, SafeAreaView } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useFonts } from 'expo-font';
+import AppLoading from "expo-app-loading";
+
+import StartGameScreen from "./screens/StartGameScreen";
+import GameScreen from "./screens/GameScreen";
 import { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Button,
-  TextInput,
-  ScrollView,
-  FlatList,
-} from "react-native";
-import GoalInput from "./components/GoalInput";
-import GoalItem from "./components/GoalItem";
+import Colors from "./constans/Colors";
+import GameOverScreen from "./screens/GameOverScreen";
 
 export default function App() {
-  const [modalIsVisible, setModalIsVisible] = useState(false);
-  const [courseGoals, setCourseGoals] = useState([]);
+  const [userNumber,setUserNumber] = useState();
+  const [roundsNumber,setRoundsNumber] = useState(0);
+  const [gameIsOver, setGameIsOver] = useState(true);
 
-  function startAtGoalHandler() {
-    setModalIsVisible(true);
+  const [fontLoaded] = useFonts({
+    'open-sans': require('./assets/fonts/OpenSans-Regular.ttf'),
+    'open-sans-bold': require('./assets/fonts/OpenSans-Bold.ttf'),
+  });
+  if(!fontLoaded){return <AppLoading/>}
+
+  function startGameHandler(pickedNumber) {
+    setUserNumber(pickedNumber);
+    setGameIsOver(false);
   }
-  function endAddGoalHandler() {
-    setModalIsVisible(false);
+  function gameOverHandler(numberOfRounds){
+    setGameIsOver(true);
+    setRoundsNumber(numberOfRounds)
+  }
+  function startNewGameHandler(){
+    setUserNumber(null);
+    setRoundsNumber(0);
   }
 
-  function goalAddHandler(enteredGoalText) {
-    setCourseGoals((currentGoalState) => [
-      ...courseGoals,
-      { text: enteredGoalText, id: Math.random().toString() },
-    ]);
-    endAddGoalHandler();
-  }
-  function deleteGoalHandler(id) {
-    setCourseGoals((currentGoalState) => {
-      return currentGoalState.filter((goal) => goal.id !== id);
-    });
-  }
+  let screen = <StartGameScreen onPickNumber={startGameHandler} />;
+  if(userNumber) {screen = <GameScreen userNumber={userNumber} onGameOver={gameOverHandler}/>}
+  if(gameIsOver && userNumber) {screen = <GameOverScreen roundsNumber={roundsNumber} userNumber={userNumber} onStartNewGame={startGameHandler}/>}
+
 
   return (
-    <>
-    <StatusBar style="light"/>
-    <View style={styles.appContainer}>
-      <View style={styles.inputContainer}>
-        <Button
-          title="Add new goal"
-          color="rgb(0, 136, 10)"
-          onPress={startAtGoalHandler}
-        />
-      </View>
-      {modalIsVisible && (
-        <GoalInput
-          onAddGoal={goalAddHandler}
-          visible={modalIsVisible}
-          onCancel={endAddGoalHandler}
-        />
-      )}
-      <View style={styles.listList}>
-        <FlatList
-          data={courseGoals}
-          renderItem={(itemData) => {
-            return (
-              <GoalItem
-                text={itemData.item.text}
-                id={itemData.item.id}
-                onDeleteItem={deleteGoalHandler}
-              />
-            );
-          }}
-          keyExtractor={(item, index) => {
-            return item.id;
-          }}
-        />
-      </View>
-    </View>
-    </>
+    <LinearGradient colors={[Colors.primary700,Colors.ascent500]} style={styles.rootScreen}>
+      <ImageBackground source={require('./assets/images/background.png')} resizeMode='cover' style={styles.rootScreen} imageStyle={styles.backgroundImage}>
+        <SafeAreaView style={styles.rootScreen}>
+          {screen}
+        </SafeAreaView>
+
+      </ImageBackground>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  appContainer: {
+  rootScreen: {
     flex: 1,
-    padding: 50,
-    paddingHorizontal: 16,
-    backgroundColor: "rgb(80,80,80)",
   },
-  inputContainer: {
-    flex: 1,
-    paddingTop: 20,
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgb(189,189,189)",
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: "rgb(189,189,189)",
-    backgroundColor: "rgb(65,65,65)",
-    width: "70%",
-    marginRight: 8,
-    padding: 5,
-    color: "rgb(232,232,232)",
-  },
-  listList: {
-    flex: 7,
+  backgroundImage: {
+    opacity: 0.15,
   },
 });
-
-// import React from 'react';
-// import { Text, View } from 'react-native';
-
-// export default function App() {
-//   return (
-//     <View style={{ padding: 50, flexDirection: 'row', width: '80%', height: 300, justifyContent: 'space-around', alignItems: 'center' }}>
-//       <View
-//         style={{
-//           backgroundColor: 'red',
-//           flex: 3,
-//           justifyContent: 'center',
-//           alignItems: 'center'
-//         }}
-//       >
-//         <Text>1</Text>
-//       </View>
-//       <View
-//         style={{
-//           backgroundColor: 'blue',
-//           flex: 2,
-//           justifyContent: 'center',
-//           alignItems: 'center'
-//         }}
-//       >
-//         <Text>2</Text>
-//       </View>
-//       <View
-//         style={{
-//           backgroundColor: 'green',
-//           flex: 1,
-//           justifyContent: 'center',
-//           alignItems: 'center'
-//         }}
-//       >
-//         <Text>3</Text>
-//       </View>
-//     </View>
-//   );
-// }
